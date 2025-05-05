@@ -1,15 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "kicad-lib-parse"
 version = "0.1.0"
-description = "Add your description here"
+description = "KiCad library parser"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "pydantic>=2.11.4",
-    "sexpdata>=1.0.2",
+    "pydantic>=2.0.0",
+    "sexpdata>=0.0.3",
 ]
 
 [dependency-groups]
 dev = [
+    "black>=25.1.0",
     "pytest>=8.3.5",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "."
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
