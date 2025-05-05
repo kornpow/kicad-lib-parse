@@ -80,26 +80,31 @@ def test_stroke_validation():
 def test_stroke_roundtrip():
     """Test roundtrip conversion of stroke data."""
     # Test basic stroke
-    data = ["stroke", ["width", "0.1016"], ["type", "solid"]]
+    data = [Symbol("stroke"), [Symbol("width"), "0.1016"], [Symbol("type"), "solid"]]
     stroke = Stroke.from_sexp(data)
     sexp = stroke.to_sexp()
-    assert sexp[0] == "stroke"
-    assert sexp[1] == ["width", "0.1016"]
-    assert sexp[2] == ["type", "solid"]
+    assert sexp[0] == Symbol("stroke")
+    assert sexp[1][0] == Symbol("width")
+    assert float(sexp[1][1]) == 0.1016
+    assert sexp[2][0] == Symbol("type")
+    assert sexp[2][1] == "solid"
 
     # Test stroke with color
     data = [
-        "stroke",
-        ["width", "0.1016"],
-        ["type", "dash"],
-        ["color", "255", "0", "0", "255"],
+        Symbol("stroke"),
+        [Symbol("width"), "0.1016"],
+        [Symbol("type"), "dash"],
+        [Symbol("color"), "255", "0", "0", "255"],
     ]
     stroke = Stroke.from_sexp(data)
     sexp = stroke.to_sexp()
-    assert sexp[0] == "stroke"
-    assert sexp[1] == ["width", "0.1016"]
-    assert sexp[2] == ["type", "dash"]
-    assert sexp[3] == ["color", "255", "0", "0", "255"]
+    assert sexp[0] == Symbol("stroke")
+    assert sexp[1][0] == Symbol("width")
+    assert float(sexp[1][1]) == 0.1016
+    assert sexp[2][0] == Symbol("type")
+    assert sexp[2][1] == "dash"
+    assert sexp[3][0] == Symbol("color")
+    assert [str(x) for x in sexp[3][1:]] == ["255", "0", "0", "255"]
 
 
 if __name__ == "__main__":

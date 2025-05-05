@@ -1,9 +1,8 @@
-import sexpdata
+import pytest
 from pathlib import Path
-import sys
-
-sys.path.append(str(Path(__file__).parent.parent))
+import sexpdata
 from src.models import Points, Point
+from sexpdata import Symbol
 
 
 def test_parse_points():
@@ -26,10 +25,13 @@ def test_parse_points():
 
     # Test roundtrip conversion
     sexp = points.to_sexp()
-    assert sexp[0] == "pts"
-    assert len(sexp) == 3  # pts + 2 points
-    assert sexp[1] == ["xy", "66.6", "67.7"]
-    assert sexp[2] == ["xy", "66.7", "70.1"]
+    assert sexp[0] == Symbol("pts")
+    assert sexp[1][0] == Symbol("xy")
+    assert float(sexp[1][1]) == 66.6
+    assert float(sexp[1][2]) == 67.7
+    assert sexp[2][0] == Symbol("xy")
+    assert float(sexp[2][1]) == 66.7
+    assert float(sexp[2][2]) == 70.1
 
 
 if __name__ == "__main__":

@@ -270,9 +270,13 @@ class Stroke(BaseModel):
 
     def to_sexp(self) -> List[Any]:
         """Convert to sexpdata format."""
-        result = ["stroke", ["width", str(self.width)], ["type", self.type]]
+        result = [
+            Symbol("stroke"),
+            [Symbol("width"), str(self.width)],
+            [Symbol("type"), self.type],
+        ]
         if self.color is not None:
-            result.append(["color"] + [str(c) for c in self.color])
+            result.append([Symbol("color")] + [str(c) for c in self.color])
         return result
 
 
@@ -318,15 +322,79 @@ class Points(BaseModel):
 
     def to_sexp(self) -> List[Any]:
         """Convert to sexpdata format."""
-        return ["pts"] + [["xy", str(pt.x), str(pt.y)] for pt in self.points]
+        return [Symbol("pts")] + [
+            [Symbol("xy"), str(pt.x), str(pt.y)] for pt in self.points
+        ]
 
 
 class Polygon(BaseModel):
+    """Model for polygon in KiCad format."""
+
     points: Points
     stroke: Optional[Stroke] = None
-    fill: str = "solid"
+    fill: str = "solid"  # solid, outline, none
     layer: Layer
     uuid: Optional[str] = None
+
+    @classmethod
+    def from_sexp(cls, data: List[Any]) -> "Polygon":
+        """Parse sexpdata format into Polygon model.
+
+        Args:
+            data: List in format [Symbol('fp_poly'), Points, [Stroke], fill, layer, [uuid]]
+        """
+        if not isinstance(data, list) or len(data) < 4:
+            raise ValueError("Invalid polygon data format")
+
+        if not isinstance(data[0], Symbol) or data[0].value() != "fp_poly":
+            raise ValueError("Polygon data must start with 'fp_poly' symbol")
+
+        # Parse points
+        points = Points.from_sexp(data[1])
+
+        # Parse stroke if present
+        stroke = None
+        if (
+            isinstance(data[2], list)
+            and isinstance(data[2][0], Symbol)
+            and data[2][0].value() == "stroke"
+        ):
+            stroke = Stroke.from_sexp(data[2])
+
+        # Parse layer
+        layer = Layer(str(data[4]))
+
+        # Parse fill
+        fill = str(data[3])
+        if fill not in ["solid", "outline", "none"]:
+            raise ValueError("Invalid fill type")
+
+        # Parse uuid if present
+        uuid = None
+        if (
+            len(data) > 5
+            and isinstance(data[5], list)
+            and isinstance(data[5][0], Symbol)
+            and data[5][0].value() == "uuid"
+        ):
+            uuid = str(data[5][1])
+
+        return cls(points=points, stroke=stroke, fill=fill, layer=layer, uuid=uuid)
+
+    def to_sexp(self) -> List[Any]:
+        """Convert to sexpdata format."""
+        result = [Symbol("fp_poly"), self.points.to_sexp()]
+
+        if self.stroke:
+            result.append(self.stroke.to_sexp())
+
+        result.append(self.fill)
+        result.append(self.layer.value)
+
+        if self.uuid:
+            result.append([Symbol("uuid"), self.uuid])
+
+        return result
 
 
 class Line(BaseModel):
@@ -527,7 +595,10 @@ class PageSettings(BaseModel):
 
 
 class UUID(BaseModel):
-    """Represents a KiCad UUID."""
+    """
+    Represents a KiCad UUID.
+    Often described as: UNIQUE_IDENTIFIER in Kicad Docs
+    """
 
     value: str
 
