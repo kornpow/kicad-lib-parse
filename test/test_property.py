@@ -32,6 +32,17 @@ def test_property_invalid_sexp():
     ):
         Property.from_sexp([Symbol("not_a_property"), "Reference", "R1"])
 
-    # Test too many components
-    with pytest.raises(ValueError, match="Invalid property data format"):
-        Property.from_sexp([Symbol("property"), "Reference", "R1", "extra"])
+    # Test invalid optional field format
+    with pytest.raises(ValueError, match="Invalid optional field format"):
+        Property.from_sexp([Symbol("property"), "Reference", "R1", "InvalidLayer"])
+
+    # Test invalid at field format
+    with pytest.raises(ValueError):
+        Property.from_sexp(
+            [
+                Symbol("property"),
+                "Reference",
+                "R1",
+                [Symbol("at"), "invalid", "position"],
+            ]
+        )

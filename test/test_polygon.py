@@ -64,8 +64,8 @@ def test_polygon_to_sexp():
     assert float(sexp[2][1][1]) == 0.0  # Compare as float
     assert sexp[2][2][0] == Symbol("type")
     assert sexp[2][2][1] == "default"
-    assert sexp[3] == "solid"
-    assert sexp[4] == "F.Adhes"
+    assert sexp[3] == [Symbol("fill"), "solid"]
+    assert sexp[4] == [Symbol("layer"), "F.Adhes"]
     assert sexp[5][0] == Symbol("uuid")
     assert sexp[5][1] == "4730c81d-f4ad-4788-8015-fd6db48f4259"
 
