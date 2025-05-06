@@ -1,7 +1,8 @@
 import pytest
 from pydantic import ValidationError
 from sexpdata import Symbol
-from src.models import TextEffects, Font
+
+from src.models import Font, TextEffects
 
 
 # Test data fixtures
@@ -24,9 +25,7 @@ def basic_font_test_cases():
                     "italic",
                 ],
             ],
-            TextEffects(
-                font=Font(height=2.0, width=1.5, thickness=0.2, bold=True, italic=True)
-            ),
+            TextEffects(font=Font(height=2.0, width=1.5, thickness=0.2, bold=True, italic=True)),
         ),
     ]
 
@@ -40,9 +39,7 @@ def justify_test_cases():
         ),
         (
             ["effects", ["font", ["size", "1.0", "1.0"]], ["justify", "right", "top"]],
-            TextEffects(
-                font=Font(), justify_horizontal="right", justify_vertical="top"
-            ),
+            TextEffects(font=Font(), justify_horizontal="right", justify_vertical="top"),
         ),
         (
             [
@@ -110,14 +107,8 @@ def test_round_trip_conversion():
     """Test that converting to sexp and back produces the same result."""
     test_cases = [
         TextEffects(font=Font()),
-        TextEffects(
-            font=Font(
-                face="KiCad Font", height=2.0, width=1.5, thickness=0.2, bold=True
-            )
-        ),
-        TextEffects(
-            font=Font(), justify_horizontal="left", justify_vertical="top", mirror=True
-        ),
+        TextEffects(font=Font(face="KiCad Font", height=2.0, width=1.5, thickness=0.2, bold=True)),
+        TextEffects(font=Font(), justify_horizontal="left", justify_vertical="top", mirror=True),
         TextEffects(font=Font(), hide=True),
     ]
 

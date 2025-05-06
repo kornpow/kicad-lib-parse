@@ -1,6 +1,7 @@
 import pytest
-from src.models import Property
 from sexpdata import Symbol
+
+from src.models import Property
 
 
 def test_property_from_sexp():
@@ -27,9 +28,7 @@ def test_property_invalid_sexp():
         Property.from_sexp([Symbol("property"), "Reference"])
 
     # Test invalid format
-    with pytest.raises(
-        ValueError, match="Property data must start with 'property' symbol"
-    ):
+    with pytest.raises(ValueError, match="Property data must start with 'property' symbol"):
         Property.from_sexp([Symbol("not_a_property"), "Reference", "R1"])
 
     # Test invalid optional field format

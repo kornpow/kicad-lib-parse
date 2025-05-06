@@ -1,8 +1,10 @@
-import pytest
 from pathlib import Path
+
+import pytest
 import sexpdata
-from src.models import Points, Point
 from sexpdata import Symbol
+
+from src.models import Point, Points
 
 
 def test_parse_points():

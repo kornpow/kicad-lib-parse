@@ -1,10 +1,12 @@
-import sexpdata
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import sexpdata
 
 sys.path.append(str(Path(__file__).parent.parent))
-from src.models import Stroke
 from sexpdata import Symbol
+
+from src.models import Stroke
 
 
 def test_parse_stroke_basic():
@@ -87,7 +89,7 @@ def test_stroke_roundtrip():
     assert sexp[1][0] == Symbol("width")
     assert float(sexp[1][1]) == 0.1016
     assert sexp[2][0] == Symbol("type")
-    assert sexp[2][1] == "solid"
+    assert str(sexp[2][1]) == "solid"
 
     # Test stroke with color
     data = [
@@ -102,7 +104,7 @@ def test_stroke_roundtrip():
     assert sexp[1][0] == Symbol("width")
     assert float(sexp[1][1]) == 0.1016
     assert sexp[2][0] == Symbol("type")
-    assert sexp[2][1] == "dash"
+    assert str(sexp[2][1]) == "dash"
     assert sexp[3][0] == Symbol("color")
     assert [str(x) for x in sexp[3][1:]] == ["255", "0", "0", "255"]
 

@@ -1,18 +1,20 @@
-import pytest
 from pathlib import Path
+
+import pytest
 import sexpdata
+from sexpdata import Symbol
+
 from src.models import (
     FootprintModel,
     Layer,
-    Property,
-    Polygon,
     Line,
     Pad,
-    Points,
     Point,
+    Points,
+    Polygon,
+    Property,
     Stroke,
 )
-from sexpdata import Symbol
 
 
 def test_footprint_from_sexp():

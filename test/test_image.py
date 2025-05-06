@@ -1,5 +1,6 @@
 import pytest
-from src.models import Image, PositionIdentifier, UUID, Layer
+
+from src.models import UUID, Image, Layer, PositionIdentifier
 
 
 def test_image_from_sexpr():

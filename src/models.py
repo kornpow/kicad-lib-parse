@@ -1,12 +1,21 @@
-from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional, Union, Tuple, Any, Literal
-from enum import Enum
-from sexpdata import Symbol
+"""Models for parsing and representing KiCad library files.
+
+This module contains Pydantic models for representing various KiCad library elements
+such as footprints, pads, lines, polygons, and their associated properties.
+"""
+
 import re
 import uuid
+from enum import Enum
+from typing import Any, List, Literal, Optional, Tuple, Union
+
+from pydantic import BaseModel, Field, field_validator
+from sexpdata import Symbol
 
 
 class Layer(str, Enum):
+    """Represents a KiCad layer with its name and properties."""
+
     F_CU = "F.Cu"
     F_PASTE = "F.Paste"
     F_MASK = "F.Mask"
@@ -57,11 +66,11 @@ class Layer(str, Enum):
         except ValueError:
             raise ValueError(f"Invalid layer name: {data[1]}")
 
-    def to_sexp(self) -> str:
+    def to_sexp(self) -> List[Any]:
         """Convert Layer enum to sexpdata format.
 
         Returns:
-            String representation of the layer name
+            List representation of the layer name
         """
         return [Symbol("layer"), self.value]
 
@@ -76,7 +85,7 @@ class StrokeType(str, Enum):
 
 
 class Font(BaseModel):
-    """Represents font settings for text effects."""
+    """Represents font settings for text effects in KiCad."""
 
     face: Optional[str] = None
     height: float = Field(default=1.0, ge=0)
@@ -88,7 +97,8 @@ class Font(BaseModel):
 
     @field_validator("thickness", "line_spacing")
     @classmethod
-    def validate_positive(cls, v):
+    def validate_positive(cls, v: Optional[float]) -> Optional[float]:
+        """Validate that numeric values are positive."""
         if v is not None and v < 0:
             raise ValueError("Value must be positive")
         return v
@@ -105,7 +115,12 @@ class TextEffects(BaseModel):
 
     @classmethod
     def from_sexp(cls, data: List[Any]) -> "TextEffects":
-        """Parse sexpdata format into TextEffects model."""
+        """Parse sexpdata format into TextEffects model.
+
+        Args:
+            data: List in format [Symbol('effects'), font_data, justify_data?,
+                mirror?, hide?]
+        """
         if not isinstance(data, list) or len(data) < 2:
             raise ValueError("Missing font settings")
 
@@ -279,6 +294,8 @@ class PositionIdentifier(BaseModel):
 
 
 class Property(BaseModel):
+    """Represents a KiCad property with key, value, and optional attributes."""
+
     key: str
     value: str
     at: Optional[PositionIdentifier] = None
@@ -293,7 +310,8 @@ class Property(BaseModel):
         """Parse sexpdata format into Property model.
 
         Args:
-            data: List in format [Symbol('property'), key, value, at?, unlocked?, layer?, uuid?, effects?, hide?]
+            data: List in format [Symbol('property'), key, value, at?, unlocked?,
+                layer?, uuid?, effects?, hide?]
         """
         if not isinstance(data, list) or len(data) < 3:
             raise ValueError("Invalid property data format")
@@ -389,13 +407,12 @@ class Stroke(BaseModel):
         """Parse sexpdata format into Stroke model.
 
         Args:
-            data: List in format [Symbol('stroke'), [Symbol('width'), value], [Symbol('type'), value], [Symbol('color'), r, g, b, a]]
+            data: List in format [Symbol('stroke'), [Symbol('width'), value],
+                [Symbol('type'), value], [Symbol('color'), r, g, b, a]]
         """
-        print(data)
         if not isinstance(data, list) or len(data) < 3:
             raise ValueError("Invalid stroke data format")
 
-        # if not isinstance(data[0], Symbol) or
         if str(data[0]) != "stroke":
             raise ValueError("Stroke data must start with 'stroke' symbol")
 
@@ -407,10 +424,8 @@ class Stroke(BaseModel):
         if not isinstance(type_data, list) or len(type_data) != 2:
             raise ValueError(f"Invalid type format: {type_data}")
 
-        # if not isinstance(width_data[0], Symbol) or
         if str(width_data[0]) != "width":
             raise ValueError(f"Width must start with 'width' symbol: {width_data}")
-        # if not isinstance(type_data[0], Symbol) or
         if str(type_data[0]) != "type":
             raise ValueError(f"Type must start with 'type' symbol: {type_data}")
 
@@ -810,6 +825,8 @@ class Pad(BaseModel):
 
 
 class Footprint(BaseModel):
+    """Represents a KiCad footprint with its properties and graphical elements."""
+
     name: str
     version: Union[str, int]  # Allow both string and integer versions
     generator: str
@@ -841,14 +858,14 @@ class PaperSize(str, Enum):
 class PageSettings(BaseModel):
     """Represents KiCad page settings with size and orientation."""
 
-    size: Union[
-        PaperSize, Tuple[float, float]
-    ]  # Either standard size or custom width/height
+    size: Union[PaperSize, Tuple[float, float]]  # Either standard size or custom width/height
     portrait: bool = False  # False means landscape
 
     @field_validator("size")
     @classmethod
-    def validate_size(cls, v):
+    def validate_size(
+        cls, v: Union[PaperSize, Tuple[float, float]]
+    ) -> Union[PaperSize, Tuple[float, float]]:
         if isinstance(v, tuple):
             if len(v) != 2:
                 raise ValueError("Custom size must be a tuple of (width, height)")
@@ -863,7 +880,8 @@ class PageSettings(BaseModel):
         Parse page settings from an s-expression string.
 
         Args:
-            sexpr: String in format "(paper SIZE [portrait])" or "(paper WIDTH HEIGHT [portrait])"
+            sexpr: String in format "(paper SIZE [portrait])" or
+                "(paper WIDTH HEIGHT [portrait])"
 
         Returns:
             PageSettings object
@@ -943,7 +961,7 @@ class UUID(BaseModel):
 
     @field_validator("value")
     @classmethod
-    def validate_uuid(cls, v):
+    def validate_uuid(cls, v: str) -> str:
         """Validate that the UUID is in the correct format."""
         try:
             # Try to parse as UUID to validate format
@@ -1000,7 +1018,7 @@ class Image(BaseModel):
 
     @field_validator("scale")
     @classmethod
-    def validate_scale(cls, v):
+    def validate_scale(cls, v: Optional[float]) -> Optional[float]:
         if v is not None and v <= 0:
             raise ValueError("Scale must be positive")
         return v
@@ -1011,7 +1029,8 @@ class Image(BaseModel):
         Parse an image from an s-expression string.
 
         Args:
-            sexpr: String in format "(image (at X Y [ANGLE]) [(scale SCALAR)] [(layer LAYER)] (uuid UUID) (data IMAGE_DATA))"
+            sexpr: String in format "(image (at X Y [ANGLE]) [(scale SCALAR)]
+                [(layer LAYER)] (uuid UUID) (data IMAGE_DATA))"
 
         Returns:
             Image object
@@ -1084,7 +1103,7 @@ class Image(BaseModel):
 
 
 class FootprintModel(BaseModel):
-    """Model for a KiCad footprint module file."""
+    """Represents a complete KiCad footprint module file with all its components."""
 
     name: str
     version: str
@@ -1102,7 +1121,9 @@ class FootprintModel(BaseModel):
         """Parse sexpdata format into FootprintModel.
 
         Args:
-            data: List in format [Symbol('footprint'), name, [version], [generator], [generator_version], [layer], [description], properties, ...]
+            data: List in format [Symbol('footprint'), name, [version],
+                [generator], [generator_version], [layer], [description],
+                properties, ...]
         """
         if not isinstance(data, list) or len(data) < 7:
             raise ValueError("Invalid footprint data format")

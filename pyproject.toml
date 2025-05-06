@@ -9,6 +9,7 @@ description = "KiCad library parser"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "black>=25.1.0",
     "pydantic>=2.0.0",
     "sexpdata>=0.0.3",
 ]
@@ -17,6 +18,11 @@ dependencies = [
 dev = [
     "black>=25.1.0",
     "pytest>=8.3.5",
+    "isort>=5.13.2",
+    "flake8>=7.0.0",
+    "flake8-docstrings>=1.7.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
 ]
 
 [tool.pytest.ini_options]
@@ -26,3 +32,18 @@ pythonpath = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py313"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true

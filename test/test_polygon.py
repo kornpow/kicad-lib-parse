@@ -1,6 +1,7 @@
 import pytest
-from src.models import Polygon, Points, Point, Stroke, Layer, StrokeType
 from sexpdata import Symbol
+
+from src.models import Layer, Point, Points, Polygon, Stroke, StrokeType
 
 
 def test_polygon_from_sexp():
@@ -63,8 +64,9 @@ def test_polygon_to_sexp():
     assert sexp[2][1][0] == Symbol("width")
     assert float(sexp[2][1][1]) == 0.0  # Compare as float
     assert sexp[2][2][0] == Symbol("type")
-    assert sexp[2][2][1] == "default"
-    assert sexp[3] == [Symbol("fill"), "solid"]
+    assert str(sexp[2][2][1]) == "default"  # Convert Symbol to string
+    assert sexp[3][0] == Symbol("fill")
+    assert str(sexp[3][1]) == "solid"  # Convert Symbol to string
     assert sexp[4] == [Symbol("layer"), "F.Adhes"]
     assert sexp[5][0] == Symbol("uuid")
     assert sexp[5][1] == "4730c81d-f4ad-4788-8015-fd6db48f4259"
@@ -77,9 +79,7 @@ def test_polygon_invalid_sexp():
         Polygon.from_sexp([Symbol("fp_poly"), [Symbol("pts")]])
 
     # Test invalid format
-    with pytest.raises(
-        ValueError, match="Polygon data must start with 'fp_poly' symbol"
-    ):
+    with pytest.raises(ValueError, match="Polygon data must start with 'fp_poly' symbol"):
         Polygon.from_sexp(
             [
                 Symbol("not_a_polygon"),

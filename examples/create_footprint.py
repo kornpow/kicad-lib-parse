@@ -10,20 +10,21 @@ This example creates a 0603 resistor footprint with:
 """
 
 from src.models import (
+    Font,
     FootprintModel,
     Layer,
-    Property,
-    Polygon,
-    Points,
-    Point,
-    Stroke,
-    StrokeType,
     Line,
     Pad,
+    Point,
+    Points,
+    Polygon,
     PositionIdentifier,
+    Property,
+    Stroke,
+    StrokeType,
     TextEffects,
-    Font,
 )
+
 
 def create_0603_footprint():
     """Create a 0603 resistor footprint."""
@@ -70,12 +71,14 @@ def create_0603_footprint():
 
     # Add courtyard outline (polygon)
     courtyard = Polygon(
-        points=Points(points=[
-            Point(x=-0.8, y=0.4),
-            Point(x=0.8, y=0.4),
-            Point(x=0.8, y=-0.4),
-            Point(x=-0.8, y=-0.4),
-        ]),
+        points=Points(
+            points=[
+                Point(x=-0.8, y=0.4),
+                Point(x=0.8, y=0.4),
+                Point(x=0.8, y=-0.4),
+                Point(x=-0.8, y=-0.4),
+            ]
+        ),
         stroke=Stroke(width=0.05, type=StrokeType.DEFAULT),
         fill="outline",
         layer=Layer.F_CRTYD,
@@ -128,6 +131,7 @@ def create_0603_footprint():
 
     return footprint
 
+
 def main():
     """Main function to create and save the footprint."""
     # Create the footprint
@@ -146,5 +150,6 @@ def main():
         f.write(str(sexp))
     print(f"\nSaved footprint to {output_file}")
 
+
 if __name__ == "__main__":
-    main() 
+    main()

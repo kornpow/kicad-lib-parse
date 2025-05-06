@@ -1,6 +1,8 @@
-import pytest
-from src.models import UUID
 import uuid
+
+import pytest
+
+from src.models import UUID
 
 
 # Test data fixtures
