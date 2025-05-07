@@ -1,11 +1,14 @@
 # KiCad Library Parser
 
-A Python library for parsing KiCad library files.
+A Python library for parsing KiCad library files. This tool allows for parsing and modification of KiCAD footprint files (other KiCad files supported in the future).
+
+
+![Basic Footprint Example](img/basic_footprint_example.png)
 
 ## Features
 
 - Parse KiCad library files
-- Convert between KiCad library formats
+- Modify KiCad library files
 - Validate library files
 - Generate library files
 
@@ -13,16 +16,24 @@ A Python library for parsing KiCad library files.
 
 ```bash
 pip install kicad-lib-parse
+# OR
+uv sync
 ```
 
-## Usage
+## Basic Usage
 
-```python
-from kicad_lib_parse import parse_library
+Currently, `main.py` will:
+- Open a sample [`0603` footprint](test/samples/0603.kicad_mod).
+- Parse the footprint into pydantic model.
+- Modify the part, add pads, move around some lines, update a polygon.
+- Writes the properly formatted data to a file, which can be opened by KiCAD.
 
-# Parse a library file
-library = parse_library("path/to/library.kicad_mod")
+
+```bash
+uv run python3 src/main.py
 ```
+
+
 
 ## Development
 
@@ -59,9 +70,7 @@ pre-commit run --all-files
 ## Related Projects
 
 - [SparkFun KiCad Libraries](https://github.com/sparkfun/SparkFun-KiCad-Libraries) - A collection of KiCad libraries for SparkFun products
-  - [Pull Requests](https://github.com/sparkfun/SparkFun-KiCad-Libraries/pulls) - View and contribute to SparkFun KiCad Libraries
+- [Sparkfun KiCad Boards](https://github.com/kornpow/sparkfun-kicad) - Manually converted to KiCad format
 
 ## License
 MIT
-
-## Example KiCad Libraries

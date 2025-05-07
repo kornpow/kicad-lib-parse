@@ -84,6 +84,17 @@ class StrokeType(str, Enum):
     DASH_DOT_DOT = "dash_dot_dot"  # from version 7
 
 
+class PadShape(str, Enum):
+    """Valid pad shapes in KiCad format."""
+
+    CIRCLE = "circle"
+    RECT = "rect"
+    OVAL = "oval"
+    TRAPEZOID = "trapezoid"
+    ROUNDRECT = "roundrect"
+    CUSTOM = "custom"
+
+
 class Font(BaseModel):
     """Represents font settings for text effects in KiCad."""
 
@@ -247,6 +258,11 @@ class PositionIdentifier(BaseModel):
     x: float
     y: float
     angle: Optional[float] = None
+
+    @classmethod
+    def from_values(cls, x, y, angle=None) -> "PositionIdentifier":
+        """Create a PositionIdentifier from x, y, and optional angle."""
+        return cls(x=x, y=y, angle=angle)
 
     @classmethod
     def from_sexpr(cls, sexpr: str) -> "PositionIdentifier":
@@ -519,7 +535,7 @@ class Polygon(BaseModel):
 
     points: Points
     stroke: Optional[Stroke] = None
-    fill: str = "solid"  # solid, outline, none
+    fill: str = "no"
     layer: Layer
     uuid: Optional[str] = None
 
@@ -702,7 +718,7 @@ class Pad(BaseModel):
 
     number: str
     type: str
-    shape: str
+    shape: PadShape
     at: PositionIdentifier
     size: Tuple[float, float]
     layers: List[Layer]
@@ -710,6 +726,91 @@ class Pad(BaseModel):
     solder_mask_margin: Optional[float] = None
     thermal_bridge_angle: Optional[float] = None
     uuid: Optional[str] = None
+
+    @classmethod
+    def create_pad(
+        cls,
+        number: str,
+        shape: PadShape,
+        width: float,
+        height: float,
+        x: float = 0.0,
+        y: float = 0.0,
+        angle: float = 0.0,
+    ) -> "Pad":
+        """Create a new Pad with minimal required parameters.
+
+        Args:
+            number: Pad number/name
+            shape: Pad shape from PadShape enum
+            width: Pad width
+            height: Pad height
+            x: X coordinate (default: 0.0)
+            y: Y coordinate (default: 0.0)
+            angle: Rotation angle in degrees (default: 0.0)
+
+        Returns:
+            A new Pad instance with auto-generated UUID and default settings
+        """
+        return cls(
+            number=number,
+            type="smd",  # default to SMD pad
+            shape=shape,
+            at=PositionIdentifier.from_values(x, y, angle),
+            size=(width, height),
+            layers=[Layer.F_CU],  # default to front copper layer
+            uuid=str(uuid.uuid4()),  # auto-generate UUID
+        )
+
+    @classmethod
+    def from_values(
+        cls,
+        number: str,
+        type_: str,
+        shape: PadShape,
+        x: float,
+        y: float,
+        width: float,
+        height: float,
+        layers: List[Layer],
+        angle: Optional[float] = None,
+        roundrect_rratio: Optional[float] = None,
+        solder_mask_margin: Optional[float] = None,
+        thermal_bridge_angle: Optional[float] = None,
+        uuid: Optional[str] = None,
+    ) -> "Pad":
+        """Create a new Pad with the given values.
+
+        Args:
+            number: Pad number/name
+            type_: Pad type (e.g. "smd", "thru_hole")
+            shape: Pad shape from PadShape enum
+            x: X coordinate
+            y: Y coordinate
+            width: Pad width
+            height: Pad height
+            layers: List of layers the pad exists on
+            angle: Optional rotation angle
+            roundrect_rratio: Optional roundrect ratio
+            solder_mask_margin: Optional solder mask margin
+            thermal_bridge_angle: Optional thermal bridge angle
+            uuid: Optional UUID
+
+        Returns:
+            A new Pad instance
+        """
+        return cls(
+            number=number,
+            type=type_,
+            shape=shape,
+            at=PositionIdentifier.from_values(x, y, angle),
+            size=(width, height),
+            layers=layers,
+            roundrect_rratio=roundrect_rratio,
+            solder_mask_margin=solder_mask_margin,
+            thermal_bridge_angle=thermal_bridge_angle,
+            uuid=uuid,
+        )
 
     @classmethod
     def from_sexp(cls, data: List[Any]) -> "Pad":
@@ -802,7 +903,7 @@ class Pad(BaseModel):
             Symbol("pad"),
             self.number,
             Symbol(self.type),
-            Symbol(self.shape),
+            Symbol(self.shape.value),
             [Symbol("at"), self.at.x, self.at.y]
             + ([self.at.angle] if self.at.angle is not None else []),
             [Symbol("size"), self.size[0], self.size[1]],
